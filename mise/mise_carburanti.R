@@ -114,7 +114,10 @@ df_def[,2] <- as.vector(t(mat_def))
 #### CONCATENATE  df_non_def df_def ###
 df <- rbind(df_def, df_non_def)
 colnames(df) <- c("Date", "Cons")
-df %>% 
+
+df <- as.data.frame(df)
+
+df <- df %>% 
   as_tibble() %>% 
   mutate(Date = as.yearmon(Date, "%Y-%m")) %>%
   mutate(Cons = as.numeric(Cons)) %>% 
@@ -127,7 +130,9 @@ df %>%
         plot.caption = element_text(hjust = 0)) +
   labs(title = "Consumi petroliferi", 
        caption = "Source: https://dgsaie.mise.gov.it/consumi_petroliferi.php")
-  
+
+#write.table(df, file = "/Users/Andrea/nowcasting-prod-ind/mise/fuel_consumption.csv", sep = ",")
+
 ggsave(filename = "../cons_petroliferi.png", plot = last_plot(), 
        width = 297, height = 210, units = "mm", device = "png", dpi = 320)
   
