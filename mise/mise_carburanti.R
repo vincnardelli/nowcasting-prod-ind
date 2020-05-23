@@ -1,16 +1,17 @@
-rm(list=ls())
 library(readxl)
 library(tidyverse)
 library(lubridate)
 library(zoo)
 setwd("./data")
 getwd()
-files <- dir()
-data <- vector(mode = "list", length = length(files))
 
-for (i in seq_along(files)){
-  data[[i]] <- read_excel(files[i], skip = 3, col_names = TRUE)
-}
+files <- list.files()
+data <- map(files, read_excel, skip = 3)
+
+# data <- vector(mode = "list", length = length(files))
+# for (i in seq_along(files)){
+#   data[[i]] <- read_excel(files[i], skip = 3, col_names = TRUE)
+# }
 
 # Extract indexes of the rows containig "TOTALE"
 # for each tibble in order to reach "CONSUMI TOTALI"
