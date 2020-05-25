@@ -3,10 +3,10 @@ library(tibble)
 library(tidyr)
 library(dplyr)
 library(lubridate)
-library(zoo)
 library(ggplot2)
 library(stringr)
 library(readxl)
+library(gganimate)
 
 # LOAD DATA
 setwd(dir = "nowcasting-prod-ind/mise/data")
@@ -45,7 +45,8 @@ data_def <- map2(data_def[1:last_def], colnames_def, ~ set_names(.x, nm = .y)) %
   enframe() %>% 
   unnest(cols = c("name", "value")) %>% 
   mutate(name = dates_def) %>% 
-  mutate(name = as.yearmon(name, "%Y-%m")) %>% 
+  mutate(name = str_c(name, "01", "-")) %>% 
+  mutate(name = ymd(name)) %>% 
   print(n = Inf)
 
 ########################
@@ -62,11 +63,12 @@ data_nondef <- map2(data_nondef, names_nondef, ~ set_names(.x, nm = .y)) %>%
   enframe() %>% 
   unnest(cols = c("name", "value")) %>% 
   mutate(name = str_replace(name, "_", "-")) %>% 
-  mutate(name = as.yearmon(name, "%Y-%m")) %>% 
+  mutate(name = str_c(name, "01", "-")) %>% 
+  mutate(name = ymd(name)) %>% 
   print(n = Inf)
 
 # COMBINE DEFINITIVI AND NON DEFINITIVI
-rbind(data_def ,data_nondef) %>% 
+line <- rbind(data_def ,data_nondef) %>% 
   ggplot(aes(x = name, y = value, group = 1)) + 
   geom_line() +
   theme_light() +
@@ -75,4 +77,27 @@ rbind(data_def ,data_nondef) %>%
   theme(plot.title = element_text(hjust = 0.5),
         plot.caption = element_text(hjust = 0)) +
   labs(title = "Consumi petroliferi", 
-       caption = "Source: https://dgsaie.mise.gov.it/consumi_petroliferi.php")
+       caption = "Source: https://dgsaie.mise.gov.it/consumi_petroliferi.php") +
+  transition_reveal(along = name)
+
+# anim_save("fuel_mise_anim.gif", path = "/Users/Andrea/nowcasting-prod-ind/mise/images")
+  
+
+rbind(data_def ,data_nondef) %>% 
+  count(cut_width(value, 140))
+  
+hist <- rbind(data_def ,data_nondef) %>% 
+  ggplot(aes(value)) +
+  geom_histogram(binwidth = 140) +
+  theme_light() +
+  xlab("(,000 Tonnellate)") +
+  theme(plot.title = element_text(hjust = 0.5),
+        plot.caption = element_text(hjust = 0)) +
+  labs(title = "Consumi petroliferi", 
+       caption = "Source: https://dgsaie.mise.gov.it/consumi_petroliferi.php") +
+  transition_reveal(along = name)
+
+anim_save("fuel_mise_anim_hist.gif", path = "/Users/Andrea/nowcasting-prod-ind/mise/images")
+
+
+
