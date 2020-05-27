@@ -1,16 +1,17 @@
-rm(list=ls())
 library(readxl)
 library(tidyverse)
 library(lubridate)
 library(zoo)
 setwd("./data")
 getwd()
-files <- dir()
-data <- vector(mode = "list", length = length(files))
 
-for (i in seq_along(files)){
-  data[[i]] <- read_excel(files[i], skip = 3, col_names = TRUE)
-}
+files <- list.files()
+data <- map(files, read_excel, skip = 3)
+
+# data <- vector(mode = "list", length = length(files))
+# for (i in seq_along(files)){
+#   data[[i]] <- read_excel(files[i], skip = 3, col_names = TRUE)
+# }
 
 # Extract indexes of the rows containig "TOTALE"
 # for each tibble in order to reach "CONSUMI TOTALI"
@@ -114,7 +115,10 @@ df_def[,2] <- as.vector(t(mat_def))
 #### CONCATENATE  df_non_def df_def ###
 df <- rbind(df_def, df_non_def)
 colnames(df) <- c("Date", "Cons")
-df %>% 
+
+df <- as.data.frame(df)
+
+df <- df %>% 
   as_tibble() %>% 
   mutate(Date = as.yearmon(Date, "%Y-%m")) %>%
   mutate(Cons = as.numeric(Cons)) %>% 
@@ -127,7 +131,9 @@ df %>%
         plot.caption = element_text(hjust = 0)) +
   labs(title = "Consumi petroliferi", 
        caption = "Source: https://dgsaie.mise.gov.it/consumi_petroliferi.php")
-  
+
+#write.table(df, file = "/Users/Andrea/nowcasting-prod-ind/mise/fuel_consumption.csv", sep = ",")
+
 ggsave(filename = "../cons_petroliferi.png", plot = last_plot(), 
        width = 297, height = 210, units = "mm", device = "png", dpi = 320)
   
